@@ -21,7 +21,7 @@ def passthrough_filter(pcl_cloud):
     axis_max = 1.1
     passthrough.set_filter_limits(axis_min, axis_max)
     cloud_filtered = passthrough.filter()
-    passthrough = cloud_filtered..make_passthrough_filter()
+    passthrough = cloud_filtered.make_passthrough_filter()
     filter_axis = 'y'
     passthrough.set_filter_field_name(filter_axis)
     axis_min = -2.75
@@ -61,23 +61,23 @@ def euclid_cluster(pcl_cloud):
     ec.set_SearchMethod(tree)
     cluster_indices = ec.Extract()
 
-	#Assign a color corresponding to each segmented object in scene
-	cluster_color = get_color_list(len(cluster_indices))
+    #Assign a color corresponding to each segmented object in scene
+    cluster_color = get_color_list(len(cluster_indices))
 
-	color_cluster_point_list = []
+    color_cluster_point_list = []
 
-	for j, indices in enumerate(cluster_indices):
-		for i, indice in enumerate(indices):
-			color_cluster_point_list.append([
+    for j, indices in enumerate(cluster_indices):
+        for i, indice in enumerate(indices):
+            color_cluster_point_list.append([
                                             white_cloud[indice][0],
-											white_cloud[indice][1],
-											white_cloud[indice][2],
-											rgb_to_float( cluster_color[j] )
+                                            white_cloud[indice][1],
+                                            white_cloud[indice][2],
+                                            rgb_to_float( cluster_color[j] )
                                            ])
 
-	#Create new cloud containing all clusters, each with unique color
-	cluster_cloud = pcl.PointCloud_PointXYZRGB()
-	cluster_cloud.from_list(color_cluster_point_list)
+    #Create new cloud containing all clusters, each with unique color
+    cluster_cloud = pcl.PointCloud_PointXYZRGB()
+    cluster_cloud.from_list(color_cluster_point_list)
 
     return cluster_cloud
 
@@ -102,12 +102,12 @@ def pcl_callback(pcl_msg):
     # Convert PCL data to ROS messages
     ros_cloud_objects =  pcl_to_ros( cloud_objects )
     ros_cloud_table   =  pcl_to_ros(  cloud_table  )   
-	ros_cluster_cloud =  pcl_to_ros( cluster_cloud )
+    ros_cluster_cloud =  pcl_to_ros( cluster_cloud )
 
     # Publish ROS messages
     pcl_objects_pub.publish(ros_cloud_objects)
     pcl_table_pub.publish(ros_cloud_table)
-	pcl_cluster_pub.publish(ros_cluster_cloud)
+    pcl_cluster_pub.publish(ros_cluster_cloud)
 
 
 if __name__ == '__main__':
@@ -119,9 +119,9 @@ if __name__ == '__main__':
     pcl_sub = rospy.Subscriber( "/sensor_stick/point_cloud", pc2.PointCloud2, pcl_callback, queue_size=1 )
 
     # Create Publishers
-    pcl_objects_pub = rospy.Publisher( "/pcl_objects", PointCloud2, queue, queue_size=1 )
-    pcl_table_pub   = rospy.Publisher( "/pcl_table",   PointCloud2, queue, queue_size=1 )
-	pcl_cluster_pub = rospy.Publisher( "/pcl_cluster", PointCloud2, queue, queue_size=1 )
+    pcl_objects_pub = rospy.Publisher( "/pcl_objects", PointCloud2, queue_size=1 )
+    pcl_table_pub   = rospy.Publisher( "/pcl_table",   PointCloud2, queue_size=1 )
+    pcl_cluster_pub = rospy.Publisher( "/pcl_cluster", PointCloud2, queue_size=1 )
 
     # Initialize color_list
     get_color_list.color_list = []
