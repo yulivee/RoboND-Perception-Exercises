@@ -4,63 +4,66 @@
 import pcl
 from pcl_helper import *
 
-# Define functions as required
+# Voxel Grid Downsampling
 def vox_downsample(pcl_cloud):
     vox = pcl_cloud.make_voxel_grid_filter()
-    LEAF_SIZE = 0.0042
+    LEAF_SIZE = 0.005
     vox.set_leaf_size(LEAF_SIZE, LEAF_SIZE, LEAF_SIZE)
     cloud_filtered = vox.filter()
 
     return cloud_filtered
     
+# PassThrough Filter
 def passthrough_filter(pcl_cloud):
     passthrough = pcl_cloud.make_passthrough_filter()
     filter_axis = 'z'
     passthrough.set_filter_field_name(filter_axis)
-    axis_min = 0.8
+    axis_min = 0.75
     axis_max = 1.1
     passthrough.set_filter_limits(axis_min, axis_max)
     cloud_filtered = passthrough.filter()
     passthrough = cloud_filtered.make_passthrough_filter()
     filter_axis = 'y'
     passthrough.set_filter_field_name(filter_axis)
-    axis_min = -2.75
-    axis_max = -1
+    axis_min = -3
+    axis_max = -1.35
     passthrough.set_filter_limits(axis_min, axis_max)
     cloud_filteredy = passthrough.filter()
     
     return cloud_filteredy
 
+# RANSAC Plane Segmentation
 def ransac_segmentation(pcl_cloud):
     seg = pcl_cloud.make_segmenter()
-
-    # Extract inliers and outliers
     seg.set_model_type(pcl.SACMODEL_PLANE)
     seg.set_method_type(pcl.SAC_RANSAC)
-    max_distance = 0.01
+    max_distance = 0.002
     seg.set_distance_threshold(max_distance)
 
-    outlier_filter = pcl_cloud.make_statistical_outlier_filter()
-    outlier_filter.set_mean_k(50)
-    outlier_filter.set_std_dev_mul_thresh(x)
-    cloud_filtered = outlier_filter.filter()
+    # Extract inliers and outliers
+    #outlier_filter = pcl_cloud.make_statistical_outlier_filter()
+    #outlier_filter.set_mean_k(50)
+    #outlier_filter.set_std_dev_mul_thresh(1.0)
+    #cloud_filtered = outlier_filter.filter()
     
     inliers, coefficients = seg.segment()
-    cloud_table   = cloud_filtered.extract(inliers, negative=False)
-    cloud_objects = cloud_filtered.extract(inliers, negative=True )
+    cloud_table   = pcl_cloud.extract(inliers, negative=False)
+    cloud_objects = pcl_cloud.extract(inliers, negative=True )
 
     return cloud_table, cloud_objects
     
+# Euclidean Clustering
 def euclid_cluster(pcl_cloud):
     white_cloud = XYZRGB_to_XYZ(pcl_cloud) # Apply function to convert XYZRGB to XYZ
     tree = white_cloud.make_kdtree()
     ec = white_cloud.make_EuclideanClusterExtraction()
     ec.set_ClusterTolerance(0.01)
     ec.set_MinClusterSize(600)
-    ec.set_MaxClusterSize(2500)
+    ec.set_MaxClusterSize(3000)
     ec.set_SearchMethod(tree)
     cluster_indices = ec.Extract()
 
+    # Create Cluster-Mask Point Cloud to visualize each cluster separately
     #Assign a color corresponding to each segmented object in scene
     cluster_color = get_color_list(len(cluster_indices))
 
@@ -94,7 +97,7 @@ def pcl_callback(pcl_msg):
     cloud_pt_filtered = passthrough_filter( cloud_vox_filtered )
 
     # RANSAC Plane Segmentation
-    cloud_objects, cloud_table = ransac_segmentation( cloud_pt_filtered )
+    cloud_table, cloud_objects = ransac_segmentation( cloud_pt_filtered )
 
     # Euclidean Clustering
     cluster_cloud = euclid_cluster( cloud_objects )
