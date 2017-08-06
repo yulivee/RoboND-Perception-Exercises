@@ -49,11 +49,7 @@ def pcl_callback(pcl_msg):
     ros_cloud_table   =  pcl_to_ros(  cloud_table  )
     ros_cluster_cloud =  pcl_to_ros( cluster_cloud )
 
- 
-    return
-
-# Exercise-3 TODOs: 
-
+    # Exercise-3 TODOs: 
     # Classify the clusters! (loop through each detected cluster one at a time)
     detected_objects_labels = []
     detected_objects = []
